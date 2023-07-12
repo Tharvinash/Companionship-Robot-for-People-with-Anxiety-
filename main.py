@@ -1,14 +1,63 @@
+from pydub.playback import play
+from pydub import AudioSegment
+import speech_recognition as sr
+import tensorflow as tf
+import RPi.GPIO as GPIO
+import time
+import matplotlib.pyplot as plt
+from keras.models import load_model
 import os
 import cv2
 import numpy as np
 import warnings
 warnings.filterwarnings("ignore")
-from keras.models import load_model
-import matplotlib.pyplot as plt
-import numpy as np
-import time
-import RPi.GPIO as GPIO
-import tensorflow as tf
+
+# Voice Code integration
+
+
+# Voice Code integration
+# Initialize recognizer class (for recognizing the speech)
+r = sr.Recognizer()
+
+# Voice Code integration
+
+
+def listen_and_process():
+    while True:  # Keep running until a return statement is encountered
+        # Use the microphone as source for input.
+        with sr.Microphone() as source:
+            print("Speak something...")
+            r.adjust_for_ambient_noise(source)  # Adjust for ambient noise
+
+            try:
+                # Set timeout for listening and record the audio
+                audio = r.listen(source, timeout=30)
+                print("Recognizing...")
+                # Using google speech recognition
+                text = r.recognize_google(audio)
+                print(f"You said: {text}")
+
+                if "i am sad" in text.lower() or "i'm sad" in text.lower():
+                    # Use the path to your audio file
+                    song = AudioSegment.from_file("/home/pi/audio.mp3")
+                    play(song)
+                    # User said 'I am sad', print "Don't worry"
+                    print("Don't worry, everything will be alright!")
+                elif "goodbye" in text.lower() or "exit" in text.lower():
+                    print("Goodbye!")
+                    return  # Terminates the function
+            except sr.WaitTimeoutError:
+                print("Timeout error: No speech detected.")
+                continue  # Go to the next iteration of the loop
+            except sr.UnknownValueError as e:
+                print("Sorry, I couldn't understand what you said.")
+                print(f"Error: {str(e)}")
+                continue  # Go to the next iteration of the loop
+            except sr.RequestError as e:
+                print(f"Speech recognition error: {e}")
+                print(f"Error: {str(e)}")
+                continue  # Go to the next iteration of the loop
+
 
 class stateCtrl(object):
     '''Motor Control Module'''
@@ -89,16 +138,19 @@ class stateCtrl(object):
 
 # Open the video capture device (webcam)
 
+
 def process_emotion():
     car = stateCtrl()
     # load model
     model = load_model("best_model.h5")
-    face_haar_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+    face_haar_cascade = cv2.CascadeClassifier(
+        cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
     cap = cv2.VideoCapture(0)
 
     while True:
-        ret, test_img = cap.read()  # captures frame and returns boolean value and captured image
+        # captures frame and returns boolean value and captured image
+        ret, test_img = cap.read()
         if not ret:
             continue
         gray_img = cv2.cvtColor(test_img, cv2.COLOR_BGR2RGB)
@@ -106,8 +158,10 @@ def process_emotion():
         faces_detected = face_haar_cascade.detectMultiScale(gray_img, 1.32, 5)
 
         for (x, y, w, h) in faces_detected:
-            cv2.rectangle(test_img, (x, y), (x + w, y + h), (255, 0, 0), thickness=7)
-            roi_gray = gray_img[y:y + w, x:x + h]  # cropping region of interest i.e. face area from  image
+            cv2.rectangle(test_img, (x, y), (x + w, y + h),
+                          (255, 0, 0), thickness=7)
+            # cropping region of interest i.e. face area from  image
+            roi_gray = gray_img[y:y + w, x:x + h]
             roi_gray = cv2.resize(roi_gray, (224, 224))
             img_pixels = tf.keras.utils.img_to_array(roi_gray)
             img_pixels = np.expand_dims(img_pixels, axis=0)
@@ -118,10 +172,12 @@ def process_emotion():
             # find max indexed array
             max_index = np.argmax(predictions[0])
 
-            emotions = ('angry', 'disgust', 'fear', 'happy', 'sad', 'surprise', 'neutral')
+            emotions = ('angry', 'disgust', 'fear', 'happy',
+                        'sad', 'surprise', 'neutral')
             predicted_emotion = emotions[max_index]
-            cv2.putText(test_img, predicted_emotion, (int(x), int(y)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-            
+            cv2.putText(test_img, predicted_emotion, (int(x), int(y)),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+
             if predicted_emotion == 'angry' or predicted_emotion == 'sad':
                 car.move_forward()  # Move the car forward
                 time.sleep(10)
@@ -139,6 +195,10 @@ def process_emotion():
     cap.release()
     cv2.destroyAllWindows
 
+
 # Start the facial emotion analysis
 process_emotion()
 
+
+# Call the function to start
+listen_and_process()
