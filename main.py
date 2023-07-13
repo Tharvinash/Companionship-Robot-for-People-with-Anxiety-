@@ -157,7 +157,7 @@ r = sr.Recognizer()
 
 def listen_and_process():
     while True:  # Keep running until a return statement is encountered
-        # Use the microphone as source for input.
+        # Use the microphone as a source for input.
         with sr.Microphone() as source:
             print("Speak something...")
             r.adjust_for_ambient_noise(source)  # Adjust for ambient noise
@@ -196,5 +196,5 @@ def listen_and_process():
 process_emotion()
 
 
-# Call the function to start
+# Call the function to start listening to the user
 listen_and_process()
