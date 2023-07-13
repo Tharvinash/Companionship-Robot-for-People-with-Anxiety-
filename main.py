@@ -159,7 +159,7 @@ def listen_and_process():
     # Create an instance of the stateCtrl class
     robot = stateCtrl()
     while True:  # Keep running until a return statement is encountered
-        # Use the microphone as source for input.
+        # Use the microphone as a source for input.
         with sr.Microphone() as source:
             print("Say something...")
             r.adjust_for_ambient_noise(source)  # Adjust for ambient noise
