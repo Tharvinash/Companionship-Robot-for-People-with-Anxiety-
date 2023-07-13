@@ -156,10 +156,12 @@ r = sr.Recognizer()
 
 
 def listen_and_process():
+    # Create an instance of the stateCtrl class
+    robot = stateCtrl()
     while True:  # Keep running until a return statement is encountered
         # Use the microphone as source for input.
         with sr.Microphone() as source:
-            print("Speak something...")
+            print("Say something...")
             r.adjust_for_ambient_noise(source)  # Adjust for ambient noise
 
             try:
@@ -176,6 +178,11 @@ def listen_and_process():
                     play(song)
                     # User said 'I am sad', print "Don't worry"
                     print("Don't worry, everything will be alright!")
+                    # User said 'I am sad', move forward
+                    robot.move_forward()
+                    time.sleep(10)
+                    robot.stop()
+
                 elif "goodbye" in text.lower() or "exit" in text.lower():
                     print("Goodbye!")
                     return  # Terminates the function
@@ -196,5 +203,5 @@ def listen_and_process():
 process_emotion()
 
 
-# Call the function to start
+# Call the function to start listening to the user
 listen_and_process()
